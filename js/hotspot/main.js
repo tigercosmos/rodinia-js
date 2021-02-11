@@ -51,19 +51,42 @@ var num_omp_threads;
  * by one time step
  */
 function single_iteration(result, temp, power, row, col,
-    Cap_1, Rx_1, Ry_1, Rz_1,
-    step) {
-    var delta;
-    var r, c;
-    var chunk;
+    Cap_1, Rx_1, Ry_1, Rz_1, threads, workers) {
+
+    var  r, c, delta;
+
     var num_chunk = row * col / (BLOCK_SIZE_R * BLOCK_SIZE_C);
     var chunks_in_row = col / BLOCK_SIZE_C;
     var chunks_in_col = row / BLOCK_SIZE_R;
 
+    var thread_per_chunk = num_chunk / threads;
+    for (let i = 0; i < threads; i++) {
+        worker.postMessage({
+            row,
+            col,
+            num_chunk,
+            chunks_in_col,
+            chunks_in_row,
+            power,
+            temp,
+            result,
+            thread_per_chunk,
+            current_thread: i,
+            Cap_1,
+            Rx_1,
+            Ry_1,
+            Rz_1,
+        });
+    }
+}
 
+function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_row, threads, thread_per_chunk, current_thread) {
     // #pragma omp parallel for shared(power, temp, result) private(chunk, r, c, delta) firstprivate(row, col, num_chunk, chunks_in_row) schedule(static)
+    var r, c, delta;
 
-    for (chunk = 0; chunk < num_chunk; ++chunk) {
+    var end = current_thread == threads - 1? num_chunk : thread_per_chunk * (current_thread + 1);
+
+    for (var chunk = thread_per_chunk * current_thread; chunk < end; ++chunk) {
         var r_start = BLOCK_SIZE_R * (chunk / chunks_in_col);
         var c_start = BLOCK_SIZE_C * (chunk % chunks_in_row);
         var r_end = r_start + BLOCK_SIZE_R > row ? row : r_start + BLOCK_SIZE_R;
@@ -147,7 +170,7 @@ function single_iteration(result, temp, power, row, col,
  * transfer differential equations to difference equations 
  * and solves the difference equations by iterating
  */
-function compute_tran_temp(result, num_iterations, temp, power, row, col) {
+function compute_tran_temp(result, num_iterations, temp, power, row, col, threads, workers) {
 
     var i = 0;
 
@@ -179,7 +202,7 @@ function compute_tran_temp(result, num_iterations, temp, power, row, col) {
 
             console.log("iteration", i);
 
-            single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, step);
+            single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, threads, workers);
             var tmp = t;
             t = r;
             r = tmp;
@@ -213,15 +236,28 @@ function read_power(vect, grid_rows, grid_cols) {
     }
 }
 
+function init_workers(threads) {
+    const workers = [];
+    for (let i = 0; i < threads; i++) {
+        const worker = new Worker("worker.js");
+        workers.push(worker);
+    }
+    return workers;
+}
+
 function main(args) {
     var grid_rows, grid_cols, sim_time, i;
     var temp, power, result;
+    var workers;
 
     /*  PARAMETERS	*/
 
     grid_rows = args.grid_rows;
     grid_cols = args.grid_cols;
     sim_time = args.sim_time;
+    threads = args.thread;
+    temp_file = args.temp_file;
+    power_file = args.power_file;
 
 
     /* allocate memory for the temperature and power arrays	*/
@@ -233,11 +269,13 @@ function main(args) {
     read_temp(temp, grid_rows, grid_cols);
     read_power(power, grid_rows, grid_cols);
 
+    workers = init_worker(threads);
+
     console.log("Start computing the transient temperature");
 
     var start_time = get_time();
 
-    compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols);
+    compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols, threads, workers);
 
     var end_time = get_time();
 

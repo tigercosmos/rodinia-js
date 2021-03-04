@@ -1,21 +1,30 @@
+console.log("new a worker");
+
 addEventListener('message', function (e) {
     const data = e.data;
-    if (data.msg == "start") {
-        main({
-            grid_rows: 1000,
-            grid_cols: 1000,
-            sim_time: 2,
 
-        });
-        postMessage({
-            msg: "finished"
-        });
+    console.log("XXX worker1")
+
+    if(data.msg == "start") {
+        console.log("start!!!")
     }
+    else if(data.msg == "job") {
+        job(data.power, data.temp, data.result, data.row, data.col, data.num_chunk, data.chunks_in_col,
+            data.chunks_in_row, data.threads, data.thread_per_chunk, data.current_thread);
+    }
+    
+    console.log("XXX worker")
+
+    postMessage("done");
 });
 
+function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_row, threads, thread_per_chunk, current_thread) {
+    // #pragma omp parallel for shared(power, temp, result) private(chunk, r, c, delta) firstprivate(row, col, num_chunk, chunks_in_row) schedule(static)
+    var r, c, delta;
 
-function job() {
-    for (chunk = 0; chunk < num_chunk; ++chunk) {
+    var end = current_thread == threads - 1 ? num_chunk : thread_per_chunk * (current_thread + 1);
+
+    for (var chunk = thread_per_chunk * current_thread; chunk < end; ++chunk) {
         var r_start = BLOCK_SIZE_R * (chunk / chunks_in_col);
         var c_start = BLOCK_SIZE_C * (chunk % chunks_in_row);
         var r_end = r_start + BLOCK_SIZE_R > row ? row : r_start + BLOCK_SIZE_R;

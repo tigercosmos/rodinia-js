@@ -1,11 +1,12 @@
 addEventListener('message', function (e) {
     const data = e.data;
     if (data.msg == "start") {
+        console.log("start")
         main({
             grid_rows: 1000,
             grid_cols: 1000,
             sim_time: 2,
-
+            threads: 4
         });
         postMessage({
             msg: "finished"
@@ -51,17 +52,32 @@ var num_omp_threads;
  * by one time step
  */
 function single_iteration(result, temp, power, row, col,
-    Cap_1, Rx_1, Ry_1, Rz_1, threads, workers) {
+    Cap_1, Rx_1, Ry_1, Rz_1, threads, workers, barrierBuf) {
 
-    var  r, c, delta;
+    var r, c, delta;
 
     var num_chunk = row * col / (BLOCK_SIZE_R * BLOCK_SIZE_C);
     var chunks_in_row = col / BLOCK_SIZE_C;
     var chunks_in_col = row / BLOCK_SIZE_R;
 
     var thread_per_chunk = num_chunk / threads;
+    var barrier = new Int32Array(barrierBuf);
+    barrier[0] = 0;
+
+    console.log("threads", threads)
+
+
     for (let i = 0; i < threads; i++) {
-        worker.postMessage({
+        workers[i].onmessage = e => {
+            if (e.data == "done") {
+                Atomics.add(barrier, 0, 1);
+            }
+        };
+
+        console.log("single iter1")
+
+        workers[i].postMessage({
+            msg: "job",
             row,
             col,
             num_chunk,
@@ -77,14 +93,21 @@ function single_iteration(result, temp, power, row, col,
             Ry_1,
             Rz_1,
         });
+
+        console.log("single iter2")
+
     }
+
+    // while (Atomics.load(barrier, 0) !== threads) {
+    //     ;
+    // }
 }
 
 function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_row, threads, thread_per_chunk, current_thread) {
     // #pragma omp parallel for shared(power, temp, result) private(chunk, r, c, delta) firstprivate(row, col, num_chunk, chunks_in_row) schedule(static)
     var r, c, delta;
 
-    var end = current_thread == threads - 1? num_chunk : thread_per_chunk * (current_thread + 1);
+    var end = current_thread == threads - 1 ? num_chunk : thread_per_chunk * (current_thread + 1);
 
     for (var chunk = thread_per_chunk * current_thread; chunk < end; ++chunk) {
         var r_start = BLOCK_SIZE_R * (chunk / chunks_in_col);
@@ -170,7 +193,7 @@ function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_
  * transfer differential equations to difference equations 
  * and solves the difference equations by iterating
  */
-function compute_tran_temp(result, num_iterations, temp, power, row, col, threads, workers) {
+function compute_tran_temp(result, num_iterations, temp, power, row, col, threads, workers, barrierBuf) {
 
     var i = 0;
 
@@ -202,7 +225,7 @@ function compute_tran_temp(result, num_iterations, temp, power, row, col, thread
 
             console.log("iteration", i);
 
-            single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, threads, workers);
+            single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, threads, workers, barrierBuf);
             var tmp = t;
             t = r;
             r = tmp;
@@ -240,8 +263,10 @@ function init_workers(threads) {
     const workers = [];
     for (let i = 0; i < threads; i++) {
         const worker = new Worker("worker.js");
+        worker.postMessage({msg: "start"});
         workers.push(worker);
     }
+    console.log(workers)
     return workers;
 }
 
@@ -249,33 +274,37 @@ function main(args) {
     var grid_rows, grid_cols, sim_time, i;
     var temp, power, result;
     var workers;
+    var barrierBuf;
+    var threads;
+
+    console.log("args", args)
 
     /*  PARAMETERS	*/
 
     grid_rows = args.grid_rows;
     grid_cols = args.grid_cols;
     sim_time = args.sim_time;
-    threads = args.thread;
+    threads = args.threads;
     temp_file = args.temp_file;
     power_file = args.power_file;
 
+    workers = init_workers(threads);
 
     /* allocate memory for the temperature and power arrays	*/
     temp = new SharedArrayBuffer(grid_rows * grid_cols * Float64Array.BYTES_PER_ELEMENT);
     power = new SharedArrayBuffer(grid_rows * grid_cols * Float64Array.BYTES_PER_ELEMENT);
     result = new SharedArrayBuffer(grid_rows * grid_cols * Float64Array.BYTES_PER_ELEMENT);
+    barrierBuf = new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT);
 
     /* read initial temperatures and input power	*/
     read_temp(temp, grid_rows, grid_cols);
     read_power(power, grid_rows, grid_cols);
 
-    workers = init_worker(threads);
-
     console.log("Start computing the transient temperature");
 
     var start_time = get_time();
 
-    compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols, threads, workers);
+    compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols, threads, workers, barrierBuf);
 
     var end_time = get_time();
 

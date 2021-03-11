@@ -35,6 +35,7 @@ const server = http.createServer((req, res) => {
             response += "</div>"
 
             res.write(response);
+            res.end();
             return;
         }
 

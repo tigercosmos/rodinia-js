@@ -1,8 +1,8 @@
-addEventListener('message', function (e) {
+addEventListener('message', async function (e) {
     const data = e.data;
     if (data.msg == "start") {
         console.log("start")
-        main({
+        await main({
             grid_rows: 1000,
             grid_cols: 1000,
             sim_time: 2,
@@ -51,8 +51,8 @@ var num_omp_threads;
  * advances the solution of the discretized difference equations 
  * by one time step
  */
-function single_iteration(result, temp, power, row, col,
-    Cap_1, Rx_1, Ry_1, Rz_1, threads, workers, barrierBuf) {
+async function single_iteration(result, temp, power, row, col,
+    Cap_1, Rx_1, Ry_1, Rz_1, threads, workers, barrier) {
 
     var r, c, delta;
 
@@ -61,49 +61,58 @@ function single_iteration(result, temp, power, row, col,
     var chunks_in_col = row / BLOCK_SIZE_R;
 
     var thread_per_chunk = num_chunk / threads;
-    var barrier = new Int32Array(barrierBuf);
+
+    num_chunk |= 0;
+    chunks_in_row |= 0;
+    chunks_in_col |= 0;
+    thread_per_chunk |= 0;
+
     barrier[0] = 0;
 
     console.log("threads", threads)
 
+    await new Promise((resolve, reject) => {
 
-    for (let i = 0; i < threads; i++) {
-        workers[i].onmessage = e => {
-            if (e.data == "done") {
-                Atomics.add(barrier, 0, 1);
-            }
-        };
+        for (let i = 0; i < threads; i++) {
+            workers[i].onmessage = e => {
+                if (e.data == "done") {
+                    Atomics.add(barrier, 0, 1);
+                    console.log("single iter barrier ", Atomics.load(barrier, 0))
+                    if (Atomics.load(barrier, 0) == threads) {
+                        resolve();
+                    }
+                }
+            };
 
-        console.log("single iter1")
+            console.log("single iter1")
 
-        workers[i].postMessage({
-            msg: "job",
-            row,
-            col,
-            num_chunk,
-            chunks_in_col,
-            chunks_in_row,
-            power,
-            temp,
-            result,
-            thread_per_chunk,
-            current_thread: i,
-            Cap_1,
-            Rx_1,
-            Ry_1,
-            Rz_1,
-        });
+            workers[i].postMessage({
+                msg: "job",
+                row,
+                col,
+                num_chunk,
+                chunks_in_col,
+                chunks_in_row,
+                power,
+                temp,
+                result,
+                thread_per_chunk,
+                current_thread: i,
+                Cap_1,
+                Rx_1,
+                Ry_1,
+                Rz_1,
+            });
 
-        console.log("single iter2")
+            console.log("single iter2")
 
-    }
+        }
 
-    // while (Atomics.load(barrier, 0) !== threads) {
-    //     ;
-    // }
+    });
 }
 
-function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_row, threads, thread_per_chunk, current_thread) {
+function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_row, threads, thread_per_chunk,
+    current_thread, Cap_1, Rx_1, Ry_1, Rz_1) {
     // #pragma omp parallel for shared(power, temp, result) private(chunk, r, c, delta) firstprivate(row, col, num_chunk, chunks_in_row) schedule(static)
     var r, c, delta;
 
@@ -114,6 +123,11 @@ function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_
         var c_start = BLOCK_SIZE_C * (chunk % chunks_in_row);
         var r_end = r_start + BLOCK_SIZE_R > row ? row : r_start + BLOCK_SIZE_R;
         var c_end = c_start + BLOCK_SIZE_C > col ? col : c_start + BLOCK_SIZE_C;
+
+        r_start |= 0;
+        c_start |= 0;
+        r_end |= 0;
+        c_end |= 0;
 
         if (r_start == 0 || c_start == 0 || r_end == row || c_end == col) {
             for (r = r_start; r < r_start + BLOCK_SIZE_R; ++r) {
@@ -193,7 +207,7 @@ function job(power, temp, result, row, col, num_chunk, chunks_in_col, chunks_in_
  * transfer differential equations to difference equations 
  * and solves the difference equations by iterating
  */
-function compute_tran_temp(result, num_iterations, temp, power, row, col, threads, workers, barrierBuf) {
+async function compute_tran_temp(result, num_iterations, temp, power, row, col, threads, workers, barrier) {
 
     var i = 0;
 
@@ -225,7 +239,7 @@ function compute_tran_temp(result, num_iterations, temp, power, row, col, thread
 
             console.log("iteration", i);
 
-            single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, threads, workers, barrierBuf);
+            await single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, threads, workers, barrier);
             var tmp = t;
             t = r;
             r = tmp;
@@ -259,22 +273,46 @@ function read_power(vect, grid_rows, grid_cols) {
     }
 }
 
-function init_workers(threads) {
-    const workers = [];
-    for (let i = 0; i < threads; i++) {
-        const worker = new Worker("worker.js");
-        worker.postMessage({msg: "start"});
-        workers.push(worker);
-    }
-    console.log(workers)
-    return workers;
+async function init_workers(threads) {
+    return new Promise((resolve, reject) => {
+        function handleWorker( /* args */ ) {
+            return new Promise((resolve, reject) => {
+                // create worker, do stuff
+                const worker = new Worker("worker.js");
+                worker.postMessage("start");
+                worker.onmessage = function (data) {
+                    resolve(worker);
+                }
+                worker.onerror = function (err) {
+                    reject(err)
+                }
+            })
+        }
+
+        var workers = [];
+
+        for (var i = 0; i < threads; i++) {
+            workers.push(handleWorker( /* arg */ ))
+        }
+
+        Promise.all(workers)
+            .then(res => {
+                console.log("all workers started")
+                resolve(res);
+            })
+            // handle error
+            .catch(err => {
+                reject(err)
+            });
+    });
 }
 
-function main(args) {
+async function main(args) {
     var grid_rows, grid_cols, sim_time, i;
     var temp, power, result;
     var workers;
     var barrierBuf;
+    var barrier;
     var threads;
 
     console.log("args", args)
@@ -288,13 +326,19 @@ function main(args) {
     temp_file = args.temp_file;
     power_file = args.power_file;
 
-    workers = init_workers(threads);
-
     /* allocate memory for the temperature and power arrays	*/
     temp = new SharedArrayBuffer(grid_rows * grid_cols * Float64Array.BYTES_PER_ELEMENT);
     power = new SharedArrayBuffer(grid_rows * grid_cols * Float64Array.BYTES_PER_ELEMENT);
     result = new SharedArrayBuffer(grid_rows * grid_cols * Float64Array.BYTES_PER_ELEMENT);
+
+
+    /* init workers */
     barrierBuf = new SharedArrayBuffer(1 * Int32Array.BYTES_PER_ELEMENT);
+    barrier = new Int32Array(barrierBuf);
+    workers = await init_workers(threads);
+
+    console.log("workers 111", workers)
+
 
     /* read initial temperatures and input power	*/
     read_temp(temp, grid_rows, grid_cols);
@@ -304,7 +348,7 @@ function main(args) {
 
     var start_time = get_time();
 
-    compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols, threads, workers, barrierBuf);
+    await compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols, threads, workers, barrier);
 
     var end_time = get_time();
 

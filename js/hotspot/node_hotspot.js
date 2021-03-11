@@ -45,6 +45,9 @@ function single_iteration(result, temp, power, row, col,
     var chunks_in_row = col / BLOCK_SIZE_C;
     var chunks_in_col = row / BLOCK_SIZE_R;
 
+    num_chunk |= 0;
+    chunks_in_row |= 0;
+    chunks_in_col |= 0;
 
     // #pragma omp parallel for shared(power, temp, result) private(chunk, r, c, delta) firstprivate(row, col, num_chunk, chunks_in_row) schedule(static)
 
@@ -53,6 +56,11 @@ function single_iteration(result, temp, power, row, col,
         var c_start = BLOCK_SIZE_C * (chunk % chunks_in_row);
         var r_end = r_start + BLOCK_SIZE_R > row ? row : r_start + BLOCK_SIZE_R;
         var c_end = c_start + BLOCK_SIZE_C > col ? col : c_start + BLOCK_SIZE_C;
+
+        r_start |= 0;
+        c_start |= 0;
+        r_end |= 0;
+        c_end |= 0;
 
         if (r_start == 0 || c_start == 0 || r_end == row || c_end == col) {
             for (r = r_start; r < r_start + BLOCK_SIZE_R; ++r) {

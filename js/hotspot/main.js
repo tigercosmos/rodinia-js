@@ -1,17 +1,10 @@
-addEventListener('message', async function (e) {
-    const data = e.data;
-    if (data.msg == "start") {
-        console.log("start")
-        await main({
-            grid_rows: 1000,
-            grid_cols: 1000,
-            sim_time: 2,
-            threads: 4
-        });
-        postMessage({
-            msg: "finished"
-        });
-    }
+console.log("Start running.")
+
+main({
+    grid_rows: 1024,
+    grid_cols: 1024,
+    sim_time: 20,
+    threads: 4
 });
 
 // Returns the current system time in microseconds 
@@ -69,7 +62,7 @@ async function single_iteration(result, temp, power, row, col,
 
     barrier[0] = 0;
 
-    console.log("threads", threads)
+    // console.log("threads", threads)
 
     await new Promise((resolve, reject) => {
 
@@ -77,14 +70,13 @@ async function single_iteration(result, temp, power, row, col,
             workers[i].onmessage = e => {
                 if (e.data == "done") {
                     Atomics.add(barrier, 0, 1);
-                    console.log("single iter barrier ", Atomics.load(barrier, 0))
+                    // console.log("single iter barrier ", Atomics.load(barrier, 0))
                     if (Atomics.load(barrier, 0) == threads) {
+                        // console.log("single iter barrier done")
                         resolve();
                     }
                 }
             };
-
-            console.log("single iter1")
 
             workers[i].postMessage({
                 msg: "job",
@@ -103,8 +95,6 @@ async function single_iteration(result, temp, power, row, col,
                 Ry_1,
                 Rz_1,
             });
-
-            console.log("single iter2")
 
         }
 
@@ -237,16 +227,19 @@ async function compute_tran_temp(result, num_iterations, temp, power, row, col, 
         var t = temp;
         for (var i = 0; i < num_iterations; i++) {
 
-            console.log("iteration", i);
+            console.log("iteration start: ", i);
 
+            const first_time = (new Date()).getTime();
             await single_iteration(r, t, power, row, col, Cap_1, Rx_1, Ry_1, Rz_1, threads, workers, barrier);
+            const last_time = (new Date()).getTime();
+
+            console.log("iteration", i, ": ", last_time - first_time, "ms");
+
             var tmp = t;
             t = r;
             r = tmp;
         }
     }
-
-    console.log(`iteration ${i++}`);
 
 }
 
@@ -345,20 +338,20 @@ async function main(args) {
     read_power(power, grid_rows, grid_cols);
 
     console.log("Start computing the transient temperature");
-
-    var start_time = get_time();
+    const first_time = (new Date()).getTime();
 
     await compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols, threads, workers, barrier);
 
-    var end_time = get_time();
-
+    const last_time = (new Date()).getTime();
     console.log("Ending simulation");
-    console.log(`Total time: ${end_time - start_time} seconds`);
 
     /* output results	*/
     // writeoutput((1 & sim_time) ? result : temp, grid_rows, grid_cols);
 
     console.log("Finished.");
+
+    const time_result = "time: " + (last_time - first_time) + "ms";
+    console.log(time_result);
 
     return 0;
 }

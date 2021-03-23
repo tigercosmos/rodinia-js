@@ -22,18 +22,17 @@ const amb_temp = 80.0;
 addEventListener('message', function (e) {
     const data = e.data;
 
-    console.log("XXX worker start", data)
-
     if (data.msg == "start") {
-        console.log("start!!!")
+        //
     } else if (data.msg == "job") {
-        console.log("XXX worker do job")
+        const first_time = (new Date()).getTime();
 
         job(data.power, data.temp, data.result, data.row, data.col, data.num_chunk, data.chunks_in_col,
             data.chunks_in_row, data.threads, data.thread_per_chunk, data.current_thread, data.Cap_1, data.Rx_1, data.Ry_1, data.Rz_1);
+            
+        const last_time = (new Date()).getTime();
+        console.log("job takes time:", last_time - first_time, "ms");
     }
-
-    console.log("XXX worker end")
 
     postMessage("done");
 });

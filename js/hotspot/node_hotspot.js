@@ -207,15 +207,16 @@ function read_power(vect, grid_rows, grid_cols) {
 
 
 
-function main(argc, argv) {
+function main(args) {
+
     var grid_rows, grid_cols, sim_time, i;
     var temp, power, result;
 
     /*  PARAMETERS	*/
 
-    grid_rows = 64;
-    grid_cols = 64;
-    sim_time = 2;
+    grid_rows = args.grid_rows;
+    grid_cols = args.grid_cols;
+    sim_time = args.sim_time;
 
 
     /* allocate memory for the temperature and power arrays	*/
@@ -228,22 +229,27 @@ function main(argc, argv) {
     read_power(power, grid_rows, grid_cols);
 
     console.log("Start computing the transient temperature");
-
-    var start_time = get_time();
+    const first_time = (new Date()).getTime();
 
     compute_tran_temp(result, sim_time, temp, power, grid_rows, grid_cols);
-
-    var end_time = get_time();
-
+    
+    const last_time = (new Date()).getTime();
     console.log("Ending simulation");
-    console.log(`Total time: ${end_time - start_time} seconds`);
 
     /* output results	*/
-    writeoutput((1 & sim_time) ? result : temp, grid_rows, grid_cols);
+    // writeoutput((1 & sim_time) ? result : temp, grid_rows, grid_cols);
 
     console.log("Finished.");
+
+    const time_result = "time: " + (last_time - first_time) + "ms";
+    console.log(time_result);
 
     return 0;
 }
 
-main();
+
+main({
+    grid_rows: 512,
+    grid_cols: 512,
+    sim_time: 20,
+});

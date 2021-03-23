@@ -25,19 +25,17 @@ function main(args) {
     console.log("I/O completed\n");
 
     // for(var i = 0 ; i < numObjects; i++) {
-    attributes[0] = "0 273 18347 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 2 255 1.00 0.00 0.50 0.03 0.00 0.00 0.00 0.00".split(" ");
-    attributes[1] = "0 270 3557 0 0 0 0 0 0 0 0 0 0 0 0 12 12 0.00 0.00 0.00 0.00 1.00 0.00 0.00 12 255 1.00 0.00 0.08 0.03 0.00 0.00 0.00 0.00".split(" ");
-    attributes[2] = "0 296 9308 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 22 255 1.00 0.00 0.05 0.03 0.00 0.00 0.00 0.00".split(" ");
-    attributes[3] = "0 302 4776 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 32 255 1.00 0.00 0.03 0.02 0.00 0.00 0.00 0.00".split(" ");
-    attributes[4] = "0 248 6196 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 42 255 1.00 0.00 0.02 0.02 0.00 0.00 0.00 0.00".split(" ");
-    attributes[5] = "0 73 1847 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 2 255 1.00 0.00 0.50 0.03 0.00 0.00 0.00 0.00".split(" ");
-    attributes[6] = "0 20 357 0 0 0 0 0 0 0 0 0 0 0 0 12 12 0.00 0.00 0.00 0.00 1.00 0.00 0.00 12 255 1.00 0.00 0.08 0.03 0.00 0.00 0.00 0.00".split(" ");
-    attributes[7] = "0 26 308 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 22 255 1.00 0.00 0.05 0.03 0.00 0.00 0.00 0.00".split(" ");
-    attributes[8] = "0 32 476 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 32 255 1.00 0.00 0.03 0.02 0.00 0.00 0.00 0.00".split(" ");
-    attributes[9] = "0 48 196 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 42 255 1.00 0.00 0.02 0.02 0.00 0.00 0.00 0.00".split(" ");
+    attributes[0] = "1 0 273 18347 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 2 255 1.00 0.00 0.50 0.03 0.00 0.00 0.00 0.00".split(" ");
+    attributes[1] = "1 0 270 3557 0 0 0 0 0 0 0 0 0 0 0 0 12 12 0.00 0.00 0.00 0.00 1.00 0.00 0.00 12 255 1.00 0.00 0.08 0.03 0.00 0.00 0.00 0.00".split(" ");
+    attributes[2] = "1 0 296 9308 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 22 255 1.00 0.00 0.05 0.03 0.00 0.00 0.00 0.00".split(" ");
+    attributes[3] = "1 0 302 4776 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 32 255 1.00 0.00 0.03 0.02 0.00 0.00 0.00 0.00".split(" ");
+    attributes[4] = "1 0 248 6196 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 42 255 1.00 0.00 0.02 0.02 0.00 0.00 0.00 0.00".split(" ");
+    attributes[5] = "1 0 73 1847 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 2 255 1.00 0.00 0.50 0.03 0.00 0.00 0.00 0.00".split(" ");
+    attributes[6] = "1 0 20 357 0 0 0 0 0 0 0 0 0 0 0 0 12 12 0.00 0.00 0.00 0.00 1.00 0.00 0.00 12 255 1.00 0.00 0.08 0.03 0.00 0.00 0.00 0.00".split(" ");
+    attributes[7] = "1 0 26 308 0 0 0 0 0 0 0 0 0 0 0 0 2 2 0.00 0.00 0.00 0.00 1.00 0.00 0.00 22 255 1.00 0.00 0.05 0.03 0.00 0.00 0.00 0.00".split(" ");
+    attributes[8] = "1 0 32 476 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 32 255 1.00 0.00 0.03 0.02 0.00 0.00 0.00 0.00".split(" ");
+    attributes[9] = "1 0 48 196 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0.00 0.00 0.00 0.00 1.00 0.00 0.00 42 255 1.00 0.00 0.02 0.02 0.00 0.00 0.00 0.00".split(" ");
     // }
-
-    console.log(attributes[0].length, "XXXXXXXXX")
 
 
 
@@ -113,13 +111,9 @@ function find_nearest_point(pt, /* [nfeatures] */
     var index, i;
     var min_dist = 3.40282347e+38;
 
-    // console.log("entry", "pt", pt, "pts", pts)
-
-
     /* find the cluster center id with min distance to pt */
     for (i = 0; i < npts; i++) {
         var dist;
-        // console.log("pt", pt, "pts", pts[i])
         dist = euclid_dist_2(pt, pts[i], nfeatures); /* no need square root */
         if (dist < min_dist) {
             min_dist = dist;
@@ -135,12 +129,9 @@ function euclid_dist_2(pt1, pt2, numdims) {
     let i;
     let ans = 0.0;
 
-    for (i = 0; i < numdims; i++){
+    for (i = 0; i < numdims; i++)
         ans += (pt1[i] - pt2[i]) * (pt1[i] - pt2[i]);
-        console.log(pt1[i], pt2[i], (pt1[i] - pt2[i]))
-    }
 
-    console.log("ans", ans)
     return (ans);
 }
 
@@ -170,7 +161,7 @@ function kmeans_clustering(
     /* allocate space for returning variable clusters[] */
     clusters = [];
     for (i = 0; i < nclusters; i++)
-        clusters[i] = []
+        clusters[i] = new SharedArrayBuffer(nfeatures * Float64Array.BYTES_PER_ELEMENT);
 
     /* randomly pick cluster centers */
     for (i = 0; i < nclusters; i++) {
@@ -188,12 +179,12 @@ function kmeans_clustering(
 
     new_centers = [];
     for (i = 0; i < nclusters; i++)
-        new_centers[i] = []
+        new_centers[i] = new SharedArrayBuffer(nfeatures * Float64Array.BYTES_PER_ELEMENT);
 
 
     partial_new_centers_len = [];
     for (i = 0; i < nthreads; i++)
-        partial_new_centers_len[i] = [];
+        partial_new_centers_len[i] = new SharedArrayBuffer(nclusters * Float64Array.BYTES_PER_ELEMENT);
 
     partial_new_centers = [];
     for (i = 0; i < nthreads; i++)
@@ -201,7 +192,7 @@ function kmeans_clustering(
 
     for (i = 0; i < nthreads; i++) {
         for (j = 0; j < nclusters; j++)
-            partial_new_centers[i][j] = [];
+            partial_new_centers[i][j] = new SharedArrayBuffer(nfeatures * Float64Array.BYTES_PER_ELEMENT);;
     }
 
     console.log("num of threads =", nthreads);
@@ -224,7 +215,6 @@ function kmeans_clustering(
                     nfeatures,
                     clusters,
                     nclusters);
-                console.log(i, index, membership[i])
                 /* if membership changes, increase delta by 1 */
                 if (membership[i] != index) delta += 1.0;
 
@@ -259,13 +249,6 @@ function kmeans_clustering(
             }
             new_centers_len[i] = 0; /* set back to 0 */
         }
-        console.log("================================== ", )
-        console.log("================================== ", )
-        console.log("================================== ", )
-        console.log("================================== ", )
-        console.log("================================== ", )
-        console.log("================================== ", )
-        console.log("==================================   delta", delta)
 
     }
     while (delta > threshold && loop++ < 500);

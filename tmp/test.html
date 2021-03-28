@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<script>
+    function handleWorker( /* args */ ) {
+        return new Promise((resolve, reject) => {
+            // create worker, do stuff
+            const worker = new Worker("worker.js");
+            worker.postMessage("start");
+            worker.onmessage = function (e) {
+                if (e.data == "done") {
+                    console.log("1122")
+                    postMessage({
+                        msg: "finished"
+                    });
+                }
+                resolve(worker )
+            }
+            worker.onerror = function (err) {
+                reject(err)
+            }
+        })
+    }
+
+    var workers = [];
+
+    for (var i = 0; i < 4; i++) {
+        workers.push(handleWorker( /* arg */ ))
+    }
+
+    Promise.all(workers)
+        .then(res => {
+            res.forEach(worker => {worker.postMessage("start")});
+            console.log("done")
+        })
+        // handle error
+        .catch(function (workerError) {
+            console.log(workerError)
+        });
+</script>

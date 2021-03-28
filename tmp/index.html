@@ -1,0 +1,15 @@
+<script>
+    console.log("Start the proxy main.")
+
+    const worker = new Worker('main.js');
+
+    worker.postMessage({
+        msg: "start"
+    });
+
+    worker.onmessage = e => {
+        if(e.data.msg == "finished") {
+            console.log("Proxy main finished.");
+        }
+    }
+</script>

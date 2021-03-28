@@ -4,7 +4,7 @@ main({
     grid_rows: 1024,
     grid_cols: 1024,
     sim_time: 20,
-    threads: 4
+    threads: 1
 });
 
 // Returns the current system time in microseconds 

@@ -1,0 +1,1 @@
+node ./node_bfs.js; diff result.txt answer.txt

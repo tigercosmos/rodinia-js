@@ -81,7 +81,8 @@ async function BFSGraph(argc) {
 	console.log("edge_list_size", edge_list_size)
 
 	var _id, cost;
-	var h_graph_edges = []
+	var h_graph_edges_buf = new SharedArrayBuffer(edge_list_size * Int32Array.BYTES_PER_ELEMENT);
+	var h_graph_edges = new Int32Array(h_graph_edges_buf);
 	for (var i = 0; i < edge_list_size; i++) {
 		var tmp_data = data[line_counter++].split(" ");
 		_id = Number(tmp_data[0]);
@@ -102,10 +103,11 @@ async function BFSGraph(argc) {
 
 	var start_time = Date.now();
 
-	var stop;
+	var stop_buf = new SharedArrayBuffer(1 * Int8Array.BYTES_PER_ELEMENT);
+	var stop = new Int8Array(stop_buf);
 	do {
 		//if no thread changes this value then the loop stops
-		stop = 0;
+		stop[0] = 0;
 
 		// #pragma omp parallel for 
 		for (var tid = 0; tid < no_of_nodes; tid++) {
@@ -126,13 +128,13 @@ async function BFSGraph(argc) {
 			if (h_updating_graph_mask[tid] == 1) {
 				h_graph_mask[tid] = 1;
 				h_graph_visited[tid] = 1;
-				stop = 1;
+				stop[0] = 1;
 				h_updating_graph_mask[tid] = 0;
 			}
 		}
 		k++;
 	}
-	while (stop);
+	while (stop[0]);
 
 	var end_time = Date.now();
 	console.log("Compute time:", (end_time - start_time));

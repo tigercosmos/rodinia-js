@@ -19,7 +19,6 @@ async function init_workers(thread_num, params) {
 				// create worker, do stuff
 				const worker = new Worker("worker.js");
 
-				params.msg = "start";
 				worker.postMessage(params);
 				worker.onmessage = function (data) {
 					resolve(worker);
@@ -141,7 +140,7 @@ async function BFSGraph(argc) {
 
 
 	workers = await init_workers(thread_num, {
-		msg: "",
+		msg: "start",
 		no_of_nodes,
 		h_graph_nodes,
 		h_graph_mask_buf,
@@ -208,7 +207,7 @@ async function BFSGraph(argc) {
 		console.log("round: ", k)
 		k++;
 	}
-	while (stop[0] && k < 10);
+	while (stop[0]);
 
 	var end_time = Date.now();
 	console.log("Compute time:", (end_time - start_time));

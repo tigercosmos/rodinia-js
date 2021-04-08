@@ -152,6 +152,7 @@ async function checkResult(result) {
 	for (var i = 0; i < result.length; i++) {
 		if (result[i].trim() != answer[i].trim()) {
 			console.error(`Line ${i}: ${result[i]} != ${answer[i]}`);
+			break;
 		}
 	}
 }

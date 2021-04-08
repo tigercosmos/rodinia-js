@@ -148,7 +148,8 @@ async function BFSGraph(argc) {
 		h_graph_visited_buf,
 		h_cost_buf,
 		h_updating_graph_mask_buf,
-		stop_buf
+		stop_buf,
+		thread_num
 	});
 
 
@@ -177,7 +178,8 @@ async function BFSGraph(argc) {
 				};
 
 				workers[i].postMessage({
-					msg: "func1"
+					msg: "func1",
+					thread_id: i
 				});
 			}
 		});
@@ -200,6 +202,7 @@ async function BFSGraph(argc) {
 
 				workers[i].postMessage({
 					msg: "func2",
+					thread_id: i
 				});
 			}
 		});
@@ -242,5 +245,5 @@ async function checkResult(result) {
 }
 
 main({
-	thread_num: 1
+	thread_num: 4
 });

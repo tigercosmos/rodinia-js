@@ -14,7 +14,7 @@ async function main(argc) {
 
 async function init_workers(thread_num, params) {
 	return new Promise((resolve, reject) => {
-		function handleWorker( /* args */ ) {
+		function handleWorker( /* args */) {
 			return new Promise((resolve, reject) => {
 				// create worker, do stuff
 				const worker = new Worker("worker.js");
@@ -32,7 +32,7 @@ async function init_workers(thread_num, params) {
 		var workers = [];
 
 		for (var i = 0; i < thread_num; i++) {
-			workers.push(handleWorker( /* arg */ ))
+			workers.push(handleWorker( /* arg */))
 		}
 
 		Promise.all(workers)
@@ -228,7 +228,7 @@ async function checkResult(result) {
 
 	var correct = true;
 	for (var i = 0; i < result.length; i++) {
-		if (result[i] != answer[i]) {
+		if (result[i].trim() != answer[i].trim()) {
 			console.error(`Line ${i}: ${result[i]} != ${answer[i]}`);
 			correct = false;
 			break;

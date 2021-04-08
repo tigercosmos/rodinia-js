@@ -10,7 +10,7 @@ var Node = {
 ////////////////////////////////////////////////////////////////////////////////
 async function main(argc) {
 	const result = await BFSGraph(argc);
-    await checkResult(result);
+	await checkResult(result);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,9 +27,9 @@ async function BFSGraph(argc) {
 
 	console.log("Reading File\n");
 	//Read in Graph from a file
-	var data = await fetch("data.txt");
+	var data = await fetch(argc.filename);
 
-    var text = await data.text();
+	var text = await data.text();
 
 	data = text.toString().split("\n");
 
@@ -39,7 +39,7 @@ async function BFSGraph(argc) {
 	no_of_nodes = Number(data[line_counter++]);
 
 	// allocate host memory
-	var h_graph_nodes = []; 
+	var h_graph_nodes = [];
 	var h_graph_mask_buf = new SharedArrayBuffer(no_of_nodes * Int8Array.BYTES_PER_ELEMENT)
 	var h_updating_graph_mask_buf = new SharedArrayBuffer(no_of_nodes * Int8Array.BYTES_PER_ELEMENT)
 	var h_graph_visited_buf = new SharedArrayBuffer(no_of_nodes * Int8Array.BYTES_PER_ELEMENT)
@@ -146,17 +146,19 @@ async function BFSGraph(argc) {
 
 	console.log("Result stored in result.txt");
 
-    return result;
+	return result;
 }
 
 async function checkResult(result) {
-    var data = await fetch("answer.txt");
-    var answer = (await data.text()).split('\n');
-    for(var i = 0; i < result.length; i++) {
-        if(result[i] != answer[i]) {
-            console.error(`Line ${i}: ${result[i]} != ${answer[i]}`);
-        }
-    }
+	var data = await fetch("answer.txt");
+	var answer = (await data.text()).split('\n');
+	for (var i = 0; i < result.length; i++) {
+		if (result[i].trim() != answer[i].trim()) {
+			console.error(`Line ${i}: ${result[i]} != ${answer[i]}`);
+		}
+	}
 }
 
-main();
+main({
+	filename: "data.txt"
+});

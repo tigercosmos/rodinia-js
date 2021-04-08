@@ -28,11 +28,11 @@ function BFSGraph(argc) {
 
 	console.log("Reading File\n");
 	//Read in Graph from a file
-	data = fs.readFileSync("data.txt");
+	data = fs.readFileSync(argc.filename);
 
 	data = data.toString().split("\n");
 
-	var source = 0;
+	var source = -1;
 
 	var line_counter = 0;
 	no_of_nodes = Number(data[line_counter++]);
@@ -148,4 +148,6 @@ function BFSGraph(argc) {
 	console.log("Result stored in result.txt");
 }
 
-main();
+main({
+	filename: "data.txt"
+});

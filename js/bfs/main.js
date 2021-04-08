@@ -61,7 +61,7 @@ async function BFSGraph(argc) {
 
 	console.log("Reading File\n");
 	//Read in Graph from a file
-	var data = await fetch("data.txt");
+	var data = await fetch(argc.filename);
 
 	var text = await data.text();
 
@@ -245,5 +245,6 @@ async function checkResult(result) {
 }
 
 main({
-	thread_num: 4
+	thread_num: 4,
+	filename: "data.txt"
 });

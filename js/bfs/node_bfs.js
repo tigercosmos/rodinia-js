@@ -67,9 +67,6 @@ function BFSGraph(argc) {
 
 	//read the source node from the file
 	source = Number(data[line_counter++]);
-	if (source != 0) {
-		console.error("Input data wrong");
-	}
 
 	//set the source node as 1 in the mask
 	h_graph_mask[source] = 1;
@@ -149,5 +146,5 @@ function BFSGraph(argc) {
 }
 
 main({
-	filename: "data.txt"
+	filename: "data/graph1M.txt"
 });
